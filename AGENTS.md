@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Pastimes shop listings and cart math live in src/lib/shop.ts; the prototype keeps cart state in memory only, because no backend is connected yet.
