@@ -1,31 +1,40 @@
-import jacket from "@/assets/jacket.jpg";
-import dress from "@/assets/dress.jpg";
-import sneakers from "@/assets/sneakers.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type Item = {
-  id: string;
-  name: string;
-  brand: string;
-  size: string;
-  condition: string;
-  price: number;
-  seller: string;
-  image: string;
-};
+export type Item = Tables<"items">;
 
-// Sample listings for the prototype; a real shop would load these from a database.
-export const ITEMS: Item[] = [
-  { id: "1", name: "Trucker denim jacket", brand: "Levi's", size: "M", condition: "Excellent", price: 650, seller: "thandi_k", image: jacket },
-  { id: "2", name: "Floral midi dress", brand: "Zara", size: "S", condition: "Like new", price: 320, seller: "megan.r", image: dress },
-  { id: "3", name: "Leather court sneakers", brand: "Common Projects", size: "UK 9", condition: "Good", price: 1450, seller: "sipho_m", image: sneakers },
-  { id: "4", name: "Stonewash denim jacket", brand: "Wrangler", size: "L", condition: "Good", price: 480, seller: "jonah.p", image: jacket },
-  { id: "5", name: "Garden print sundress", brand: "Woolworths", size: "M", condition: "Excellent", price: 260, seller: "aisha_n", image: dress },
-  { id: "6", name: "Minimal white trainers", brand: "Veja", size: "UK 6", condition: "Like new", price: 980, seller: "lerato.d", image: sneakers },
-];
+export const CONDITIONS = ["Like new", "Excellent", "Good"];
 
-export const formatRand = (amount: number) => `R ${amount.toLocaleString("en-ZA")}`;
+export async function fetchAvailableItems(): Promise<Item[]> {
+  const { data, error } = await supabase
+    .from("items")
+    .select("*")
+    .eq("status", "available")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
 
-export type CartLine = { item: Item; qty: number };
+export async function fetchCart(userId: string): Promise<Item[]> {
+  const { data, error } = await supabase
+    .from("cart_items")
+    .select("item:items(*)")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return data.map((row) => row.item).filter((i): i is Item => Boolean(i));
+}
 
-export const cartTotal = (lines: CartLine[]) =>
-  lines.reduce((sum, line) => sum + line.item.price * line.qty, 0);
+export const cartTotal = (items: Pick<Item, "price">[]) =>
+  items.reduce((sum, item) => sum + Number(item.price), 0);
+
+// Uploads a clothing photo to the seller's folder and returns a long-lived link.
+export async function uploadItemImage(userId: string, file: File): Promise<string> {
+  const path = `${userId}/${crypto.randomUUID()}-${file.name.replace(/[^A-Za-z0-9._-]/g, "")}`;
+  const { error } = await supabase.storage.from("item-images").upload(path, file, { contentType: file.type });
+  if (error) throw error;
+  const { data, error: urlError } = await supabase.storage
+    .from("item-images")
+    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (urlError || !data) throw urlError ?? new Error("Could not create image link");
+  return data.signedUrl;
+}

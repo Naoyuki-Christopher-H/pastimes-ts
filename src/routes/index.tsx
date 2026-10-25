@@ -1,7 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
 import hero from "@/assets/hero.jpg";
-import { ITEMS, cartTotal, formatRand, type CartLine, type Item } from "@/lib/shop";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { SiteHeader } from "@/components/SiteHeader";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { cartTotal, fetchAvailableItems, fetchCart, type Item } from "@/lib/shop";
+import { formatRand } from "@/lib/validation";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,189 +25,234 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const btn = "rounded-md px-4 py-2 text-sm font-medium transition-colors";
-const btnPrimary = `${btn} bg-primary text-primary-foreground hover:bg-primary/90`;
-const btnAccent = `${btn} bg-accent text-accent-foreground hover:bg-accent/90`;
-const btnGhost = `${btn} border border-border hover:bg-secondary`;
-const field = "w-full rounded-md border border-input bg-card px-3 py-2 text-sm";
-
 function Index() {
-  const [cart, setCart] = useState<CartLine[]>([]);
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
   const [cartOpen, setCartOpen] = useState(false);
   const [messageFor, setMessageFor] = useState<Item | null>(null);
-  const [notice, setNotice] = useState("");
 
-  const flash = (text: string) => {
-    setNotice(text);
-    setTimeout(() => setNotice(""), 2500);
+  const items = useQuery({ queryKey: ["items", "available"], queryFn: fetchAvailableItems });
+  const cart = useQuery({
+    queryKey: ["cart", user?.id],
+    queryFn: () => fetchCart(user!.id),
+    enabled: Boolean(user),
+  });
+  const cartItems = cart.data ?? [];
+
+  const requireLogin = () => {
+    if (!user) {
+      toast("Please log in to continue");
+      navigate({ to: "/auth" });
+      return true;
+    }
+    return false;
   };
 
-  const add = (item: Item) => {
-    setCart((lines) =>
-      lines.some((l) => l.item.id === item.id)
-        ? lines.map((l) => (l.item.id === item.id ? { ...l, qty: l.qty + 1 } : l))
-        : [...lines, { item, qty: 1 }],
-    );
-    flash(`${item.name} added to cart`);
-  };
+  const addToCart = useMutation({
+    mutationFn: async (item: Item) => {
+      const { error } = await supabase.from("cart_items").insert({ user_id: user!.id, item_id: item.id });
+      if (error) throw new Error(error.code === "23505" ? "Already in your cart" : error.message);
+      return item;
+    },
+    onSuccess: (item) => {
+      toast.success(`${item.name} added to cart`);
+      qc.invalidateQueries({ queryKey: ["cart"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  const setQty = (id: string, qty: number) =>
-    setCart((lines) =>
-      qty <= 0 ? lines.filter((l) => l.item.id !== id) : lines.map((l) => (l.item.id === id ? { ...l, qty } : l)),
-    );
+  const removeFromCart = useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await supabase.from("cart_items").delete().eq("user_id", user!.id).eq("item_id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
+  });
 
-  const count = cart.reduce((n, l) => n + l.qty, 0);
+  const checkout = useMutation({
+    mutationFn: async () => {
+      const address = profile?.delivery_address?.trim();
+      if (!address) throw new Error("Add your delivery address in My account before checking out");
+      for (const item of cartItems) {
+        const { error } = await supabase
+          .from("orders")
+          .insert({ buyer_id: user!.id, item_id: item.id, delivery_address: address, seller_id: item.seller_id, item_name: item.name, price: item.price });
+        if (error) throw new Error(`${item.name}: ${error.message}`);
+      }
+    },
+    onSuccess: () => {
+      toast.success("Order placed. Track it in My account.");
+      setCartOpen(false);
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => {
+      toast.error(e.message);
+      qc.invalidateQueries();
+    },
+  });
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="font-display text-2xl font-semibold text-primary">Pastimes</span>
-          <nav className="flex items-center gap-6 text-sm">
-            <a href="#shop" className="hover:text-accent">Shop</a>
-            <a href="#sell" className="hover:text-accent">Sell</a>
-            <button className={btnPrimary} onClick={() => setCartOpen(true)}>
-              Cart ({count})
-            </button>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader
+        cartCount={cartItems.length}
+        onCart={() => {
+          if (!requireLogin()) setCartOpen(true);
+        }}
+      />
 
       <section className="relative">
-        <img src={hero} alt="Rail of pre-loved clothing" width={1600} height={912} className="h-[70vh] w-full object-cover" />
+        <img src={hero} alt="Rail of pre-loved clothing" width={1600} height={912} className="h-[60vh] w-full object-cover" />
         <div className="absolute inset-0 bg-overlay" />
         <div className="absolute inset-0 mx-auto flex max-w-6xl flex-col justify-end px-6 pb-16 text-primary-foreground">
           <h1 className="max-w-2xl text-5xl leading-tight md:text-6xl">Good clothes deserve a second story.</h1>
           <p className="mt-4 max-w-lg text-lg opacity-90">Buy and sell branded second-hand clothing, checked for quality.</p>
-          <a href="#shop" className={`${btnAccent} mt-8 w-fit px-6 py-3`}>Browse the rail</a>
+          <div className="mt-8 flex gap-3">
+            <Button variant="secondary" asChild><a href="#shop">Browse the rail</a></Button>
+            {!user && <Button variant="outline" className="bg-transparent" asChild><Link to="/auth">Create an account</Link></Button>}
+          </div>
         </div>
       </section>
 
       <section id="shop" className="mx-auto max-w-6xl px-6 py-20">
         <h2 className="text-4xl">Just in</h2>
+        {items.isLoading && <p className="mt-6 text-muted-foreground">Loading clothing...</p>}
+        {items.data?.length === 0 && <p className="mt-6 text-muted-foreground">No clothing is listed right now. Check back soon.</p>}
         <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {ITEMS.map((item) => (
-            <article key={item.id} className="overflow-hidden rounded-lg bg-card shadow-soft">
-              <img src={item.image} alt={item.name} loading="lazy" width={800} height={1008} className="aspect-[4/5] w-full object-cover" />
-              <div className="p-5">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">{item.brand}</p>
-                <h3 className="mt-1 text-xl">{item.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Size {item.size} · {item.condition} · by @{item.seller}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="font-semibold">{formatRand(item.price)}</span>
-                  <div className="flex gap-2">
-                    <button className={btnGhost} onClick={() => setMessageFor(item)}>Message</button>
-                    <button className={btnPrimary} onClick={() => add(item)}>Add</button>
+          {items.data?.map((item) => {
+            const own = item.seller_id === user?.id;
+            const inCart = cartItems.some((c) => c.id === item.id);
+            return (
+              <article key={item.id} className="overflow-hidden rounded-lg bg-card shadow-soft">
+                {item.image_url ? (
+                  <img src={item.image_url} alt={item.name} loading="lazy" className="aspect-[4/5] w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-[4/5] items-center justify-center bg-muted text-muted-foreground">No photo</div>
+                )}
+                <div className="p-5">
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">{item.brand}</p>
+                  <h3 className="mt-1 text-xl">{item.name}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Size {item.size} · {item.condition} · by @{item.seller_username}
+                  </p>
+                  {item.description && <p className="mt-2 text-sm">{item.description}</p>}
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="font-semibold">{formatRand(Number(item.price))}</span>
+                    {!own && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => !requireLogin() && setMessageFor(item)}>Message</Button>
+                        <Button size="sm" disabled={inCart} onClick={() => !requireLogin() && addToCart.mutate(item)}>
+                          {inCart ? "In cart" : "Add"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </section>
 
-      <section id="sell" className="bg-secondary">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 md:grid-cols-2">
-          <div>
-            <h2 className="text-4xl">Sell with Pastimes</h2>
-            <p className="mt-4 text-muted-foreground">
-              Register as a seller, tell us about your item, and our team checks it and lists it for you.
-            </p>
-          </div>
-          <form
-            className="space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.currentTarget.reset();
-              flash("Thanks! Our team will review your item.");
-            }}
-          >
-            <input required placeholder="Your name" className={field} />
-            <input required type="email" placeholder="Email address" className={field} />
-            <input required placeholder="Item and brand" className={field} />
-            <textarea required placeholder="Size, condition and any flaws" rows={3} className={field} />
-            <button className={btnAccent}>Submit for review</button>
-          </form>
+      <section className="bg-secondary">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <h2 className="text-4xl">Sell with Pastimes</h2>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Register as a vendor and upload your identity document. Once our team approves you, submit clothing from My account and we list it after a quality check.
+          </p>
+          <Button className="mt-6" asChild>
+            <Link to={user ? "/account" : "/auth"}>{user ? "Go to My account" : "Become a vendor"}</Link>
+          </Button>
         </div>
       </section>
 
-      <footer className="py-10 text-center text-sm text-muted-foreground">Pastimes · Prototype demo</footer>
+      <footer className="py-10 text-center text-sm text-muted-foreground">Pastimes · Second-hand branded clothing</footer>
 
       {cartOpen && (
         <div className="fixed inset-0 z-30 flex justify-end bg-overlay" onClick={() => setCartOpen(false)}>
           <aside className="flex h-full w-full max-w-md flex-col bg-background p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl">Your cart</h2>
-              <button className={btnGhost} onClick={() => setCartOpen(false)}>Close</button>
+              <Button variant="outline" size="sm" onClick={() => setCartOpen(false)}>Close</Button>
             </div>
             <div className="mt-6 flex-1 space-y-4 overflow-y-auto">
-              {cart.length === 0 && <p className="text-muted-foreground">Your cart is empty.</p>}
-              {cart.map(({ item, qty }) => (
+              {cartItems.length === 0 && <p className="text-muted-foreground">Your cart is empty.</p>}
+              {cartItems.map((item) => (
                 <div key={item.id} className="flex gap-4">
-                  <img src={item.image} alt={item.name} className="h-20 w-16 rounded object-cover" />
+                  {item.image_url && <img src={item.image_url} alt={item.name} className="h-20 w-16 rounded object-cover" />}
                   <div className="flex-1">
                     <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{formatRand(item.price)}</p>
-                    <div className="mt-2 flex items-center gap-2 text-sm">
-                      <button className={btnGhost} onClick={() => setQty(item.id, qty - 1)}>−</button>
-                      <span>{qty}</span>
-                      <button className={btnGhost} onClick={() => setQty(item.id, qty + 1)}>+</button>
-                      <button className="ml-auto text-destructive" onClick={() => setQty(item.id, 0)}>Remove</button>
-                    </div>
+                    <p className="text-sm text-muted-foreground">{formatRand(Number(item.price))} · Size {item.size}</p>
+                    {item.status !== "available" && <p className="text-sm text-destructive">No longer available</p>}
                   </div>
+                  <button className="text-sm text-destructive" onClick={() => removeFromCart.mutate(item.id)}>Remove</button>
                 </div>
               ))}
             </div>
             <div className="border-t border-border pt-4">
               <div className="flex justify-between font-semibold">
                 <span>Total</span>
-                <span>{formatRand(cartTotal(cart))}</span>
+                <span>{formatRand(cartTotal(cartItems))}</span>
               </div>
-              <button
-                disabled={cart.length === 0}
-                className={`${btnAccent} mt-4 w-full disabled:opacity-50`}
-                onClick={() => {
-                  setCart([]);
-                  setCartOpen(false);
-                  flash("Order placed! Delivery details will follow by email.");
-                }}
+              <p className="mt-2 text-sm text-muted-foreground">
+                Deliver to: {profile?.delivery_address || "No address yet. Add one in My account."}
+              </p>
+              <Button
+                variant="accent"
+                className="mt-4 w-full"
+                disabled={cartItems.length === 0 || checkout.isPending}
+                onClick={() => checkout.mutate()}
               >
-                Checkout
-              </button>
+                {checkout.isPending ? "Placing order..." : "Buy now"}
+              </Button>
             </div>
           </aside>
         </div>
       )}
 
-      {messageFor && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-overlay p-4" onClick={() => setMessageFor(null)}>
-          <form
-            className="w-full max-w-md space-y-3 rounded-lg bg-background p-6"
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={(e) => {
-              e.preventDefault();
-              flash(`Message sent to @${messageFor.seller}`);
-              setMessageFor(null);
-            }}
-          >
-            <h2 className="text-2xl">Message @{messageFor.seller}</h2>
-            <p className="text-sm text-muted-foreground">About: {messageFor.name}</p>
-            <textarea required rows={4} placeholder="Ask about fit, condition..." className={field} />
-            <div className="flex justify-end gap-2">
-              <button type="button" className={btnGhost} onClick={() => setMessageFor(null)}>Cancel</button>
-              <button className={btnPrimary}>Send</button>
-            </div>
-          </form>
-        </div>
+      {messageFor && user && profile && (
+        <MessageDialog
+          item={messageFor}
+          sender={{ id: user.id, username: profile.username }}
+          onClose={() => setMessageFor(null)}
+        />
       )}
+    </div>
+  );
+}
 
-      {notice && (
-        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-md bg-primary px-5 py-3 text-sm text-primary-foreground shadow-soft">
-          {notice}
+function MessageDialog({ item, sender, onClose }: { item: Item; sender: { id: string; username: string }; onClose: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const body = String(new FormData(e.currentTarget).get("body") ?? "").trim();
+    if (!body || body.length > 1000) return toast.error("Write a message of up to 1000 characters");
+    setBusy(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: sender.id,
+      sender_username: sender.username,
+      recipient_id: item.seller_id,
+      recipient_username: item.seller_username,
+      item_id: item.id,
+      item_name: item.name,
+      body,
+    });
+    setBusy(false);
+    if (error) return toast.error("Only approved accounts can send messages");
+    toast.success(`Message sent to @${item.seller_username}`);
+    onClose();
+  };
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-overlay p-4" onClick={onClose}>
+      <form className="w-full max-w-md space-y-3 rounded-lg bg-background p-6" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
+        <h2 className="text-2xl">Message @{item.seller_username}</h2>
+        <p className="text-sm text-muted-foreground">About: {item.name}</p>
+        <Textarea name="body" required rows={4} maxLength={1000} placeholder="Ask about fit, condition..." />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button disabled={busy}>Send</Button>
         </div>
-      )}
+      </form>
     </div>
   );
 }
