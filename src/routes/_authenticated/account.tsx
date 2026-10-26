@@ -73,9 +73,9 @@ function AccountPage() {
       <main className="mx-auto max-w-5xl space-y-12 px-6 py-12">
         <div>
           <h1 className="text-4xl">Hello, {profile.full_name}</h1>
-          <p className="mt-2 text-muted-foreground">
+          <div className="mt-2 text-muted-foreground">
             @{profile.username} · {profile.email} · <Badge variant="secondary">{profile.account_type}</Badge>
-          </p>
+          </div>
         </div>
 
         {announcements.data && announcements.data.length > 0 && (
