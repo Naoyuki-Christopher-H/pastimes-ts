@@ -226,7 +226,10 @@ function MessageDialog({ item, sender, onClose }: { item: Item; sender: { id: st
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const body = String(new FormData(e.currentTarget).get("body") ?? "").trim();
-    if (!body || body.length > 1000) return toast.error("Write a message of up to 1000 characters");
+    if (!body || body.length > 1000) {
+      toast.error("Write a message of up to 1000 characters");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("messages").insert({
       sender_id: sender.id,
@@ -238,7 +241,10 @@ function MessageDialog({ item, sender, onClose }: { item: Item; sender: { id: st
       body,
     });
     setBusy(false);
-    if (error) return toast.error("Only approved accounts can send messages");
+    if (error) {
+      toast.error("Only approved accounts can send messages");
+      return;
+    }
     toast.success(`Message sent to @${item.seller_username}`);
     onClose();
   };
