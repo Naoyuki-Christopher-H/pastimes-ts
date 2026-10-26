@@ -78,13 +78,13 @@ function Accounts() {
 
   const openDocument = async (path: string) => {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 300);
-    if (error || !data) return toast.error("Could not open the document");
+    if (error || !data) { toast.error("Could not open the document"); return; }
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
   const decide = async (id: string, status: "approved" | "rejected") => {
     const { error } = await supabase.from("profiles").update({ status, review_note: notes[id]?.trim() || null }).eq("id", id);
-    if (error) return toast.error("Could not update the account");
+    if (error) { toast.error("Could not update the account"); return; }
     toast.success(status === "approved" ? "Account approved" : "Account rejected");
     qc.invalidateQueries({ queryKey: ["admin-accounts"] });
   };
@@ -94,7 +94,7 @@ function Accounts() {
       <div className="flex gap-2">
         {(["pending", "approved", "rejected"] as const).map((s) => (
           <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)}>
-            {s[0].toUpperCase() + s.slice(1)}
+            {s.charAt(0).toUpperCase() + s.slice(1)}
           </Button>
         ))}
       </div>
@@ -143,13 +143,13 @@ function Listings({ me }: { me: { id: string; username: string } }) {
 
   const setStatus = async (id: string, status: "available" | "sold" | "pending") => {
     const { error } = await supabase.from("items").update({ status }).eq("id", id);
-    if (error) return toast.error("Could not update the item");
+    if (error) { toast.error("Could not update the item"); return; }
     refresh();
   };
   const remove = async (id: string) => {
     if (!window.confirm("Remove this item from the store?")) return;
     const { error } = await supabase.from("items").delete().eq("id", id);
-    if (error) return toast.error("Items with orders cannot be deleted. Mark them as sold instead.");
+    if (error) { toast.error("Items with orders cannot be deleted. Mark them as sold instead."); return; }
     toast.success("Item removed");
     refresh();
   };
@@ -191,7 +191,7 @@ function Orders() {
   });
   const update = async (id: string, status: "placed" | "shipped" | "delivered") => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (error) return toast.error("Could not update the order");
+    if (error) { toast.error("Could not update the order"); return; }
     qc.invalidateQueries({ queryKey: ["admin-orders"] });
   };
   return (
@@ -207,7 +207,7 @@ function Orders() {
           <div className="flex gap-2">
             {(["placed", "shipped", "delivered"] as const).map((s) => (
               <Button key={s} size="sm" variant={o.status === s ? "default" : "outline"} onClick={() => update(o.id, s)}>
-                {s[0].toUpperCase() + s.slice(1)}
+                {s.charAt(0).toUpperCase() + s.slice(1)}
               </Button>
             ))}
           </div>
@@ -227,7 +227,7 @@ function Announcements() {
   const post = async () => {
     if (!body.trim()) return;
     const { error } = await supabase.from("announcements").insert({ body: body.trim() });
-    if (error) return toast.error("Could not post the announcement");
+    if (error) { toast.error("Could not post the announcement"); return; }
     setBody("");
     toast.success("Announcement sent to all users");
     qc.invalidateQueries({ queryKey: ["announcements"] });

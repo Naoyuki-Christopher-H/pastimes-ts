@@ -34,9 +34,9 @@ export function ItemForm({
     const formEl = e.currentTarget;
     const f = new FormData(formEl);
     const parsed = itemSchema.safeParse(Object.fromEntries(f));
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Check the form"); return; }
     const file = f.get("photo") as File | null;
-    if (file && file.size > 5 * 1024 * 1024) return toast.error("Photo must be 5 MB or smaller");
+    if (file && file.size > 5 * 1024 * 1024) { toast.error("Photo must be 5 MB or smaller"); return; }
 
     setBusy(true);
     try {
