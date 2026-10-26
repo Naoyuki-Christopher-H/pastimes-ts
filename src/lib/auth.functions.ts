@@ -14,7 +14,7 @@ const registerPayload = z.object({
 
 // Creates a pending account and stores the identity document for admin review.
 export const registerAccount = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => registerPayload.parse(input))
+  .validator((input: unknown) => registerPayload.parse(input))
   .handler(async ({ data }) => {
     const form = registerSchema.parse(data.form);
     if (!DOCUMENT_TYPES.includes(data.document.type)) {
@@ -67,7 +67,7 @@ export const registerAccount = createServerFn({ method: "POST" })
 
 // Signs in by username. Only approved accounts receive a session.
 export const loginWithUsername = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => loginSchema.parse(input))
+  .validator((input: unknown) => loginSchema.parse(input))
   .handler(async ({ data }) => {
     const invalid = { ok: false as const, error: "Incorrect username or password" };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
