@@ -39,7 +39,7 @@ UNDER NO CIRCUMSTANCES SHOULD IMAGES OR EMOJIS BE INCLUDED DIRECTLY IN THE READM
 
 ## Project Status
 
-Pastimes is a prototype under active development. The storefront and the database are in place. Registration, login, and the administrator and account pages are not yet built. See [Features](#features) and [Known Limitations](#known-limitations) for details.
+Pastimes is a working prototype. Registration, admin approval, login, the storefront, cart, checkout, messaging, vendor listings, and the administrator page are all in place.
 
 ## Overview
 
@@ -55,20 +55,18 @@ The main goals of the application are:
 
 ### Available Now
 
-- **Storefront.** A home page with a product gallery showing the brand, size, condition, price in South African rand, and seller of each item.
-- **Shopping cart.** Customers add items, change quantities, remove items, and see a running total. The cart is held in the browser only and is cleared when the page reloads.
-- **Message a seller.** A form for writing a message to the seller of an item. Messages are not yet saved.
-- **Sell with Pastimes.** A form where a prospective vendor describes an item for review. Submissions are not yet saved.
-- **Database.** Storage for accounts, roles, listings, carts, orders, messages, and announcements, with access rules for each.
-- **File storage.** A private area for identity documents, readable only by administrators, and a private area for clothing photographs.
+- **Registration.** Customers and vendors provide Full Name, Username, Email, Password, and Confirm Password, and upload an identity document (PDF, JPG, or PNG, up to 5 MB). Passwords must be at least 8 characters, and common or leaked passwords are refused.
+- **Login by username.** Accounts awaiting approval, or rejected accounts, see a clear message and are not signed in.
+- **Storefront.** Clothing listings are read from the database, showing brand, size, condition, price in South African rand, photo, and seller.
+- **Shopping cart and checkout.** Approved users add items to a saved cart, remove items, and buy. Orders are delivered to the address saved on the account.
+- **Messages.** Buyers message sellers about an item, and both sides can reply.
+- **My account.** Delivery details, order history, messages, announcements, and, for vendors, item submission, listings, and sales.
+- **Administrator page.** Review identity documents, approve or reject accounts with a note, add and approve listings, mark items as sold or remove them, update delivery status, read all messages, and post announcements.
 
 ### Planned
 
-- Registration with Full Name, Username, Email, Password, and Confirm Password, plus a choice of Customer or Vendor and an identity document upload.
-- Login by username and password, with a clear message for accounts that are awaiting approval.
-- An administrator page for reviewing documents, approving or rejecting accounts, approving listings, marking items as sold, updating delivery status, reading messages, and posting announcements.
-- An account page for delivery details, order history, messages, and vendor listings.
-- A storefront that reads listings from the database.
+- Password reset by email.
+- Email notifications for approvals and orders.
 
 ## User Roles
 
@@ -200,14 +198,13 @@ Run the automated tests with:
 bun run test
 ```
 
-The current tests confirm that the application's pages load correctly.
+The tests confirm that the home page loads and that the registration rules work: an 8-character minimum password, matching confirmation, and no self-registration as an administrator.
 
 ## Known Limitations
 
-- Registration and login are not yet available.
-- The storefront uses built-in sample listings, not the database.
-- The cart, messages, and sell form are not saved.
+- Each listing is a single item, so the cart has no quantities.
 - The six sample listings share three photographs.
+- Users are not yet notified by email when their account is approved.
 
 ## Contributing
 
