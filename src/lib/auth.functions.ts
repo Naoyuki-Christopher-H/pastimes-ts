@@ -45,10 +45,12 @@ export const registerAccount = createServerFn({ method: "POST" })
       },
     });
     if (error || !created.user) {
-      console.error("createUser failed", error?.message, error?.status);
-      const msg = error?.message?.toLowerCase().includes("already")
+      const text = error?.message?.toLowerCase() ?? "";
+      const msg = text.includes("already")
         ? "An account with that email already exists"
-        : "Could not create the account. Please try again.";
+        : text.includes("weak") || text.includes("password")
+          ? "This password is too common or has appeared in a data leak. Please choose a stronger one."
+          : "Could not create the account. Please try again.";
       return { ok: false as const, error: msg };
     }
 
