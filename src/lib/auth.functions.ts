@@ -45,6 +45,7 @@ export const registerAccount = createServerFn({ method: "POST" })
       },
     });
     if (error || !created.user) {
+      console.error("createUser failed", error?.message, error?.status);
       const msg = error?.message?.toLowerCase().includes("already")
         ? "An account with that email already exists"
         : "Could not create the account. Please try again.";
