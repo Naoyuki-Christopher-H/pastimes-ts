@@ -59,10 +59,10 @@ function AccountPage() {
   const isVendor = profile.account_type === "vendor" || profile.account_type === "admin";
 
   const saveDetails = async () => {
-    if (name.trim().length < 2) return toast.error("Enter your full name");
-    if (address.length > 500) return toast.error("Address is too long");
+    if (name.trim().length < 2) { toast.error("Enter your full name"); return; }
+    if (address.length > 500) { toast.error("Address is too long"); return; }
     const { error } = await supabase.from("profiles").update({ full_name: name.trim(), delivery_address: address.trim() || null }).eq("id", user.id);
-    if (error) return toast.error("Could not save your details");
+    if (error) { toast.error("Could not save your details"); return; }
     toast.success("Details saved");
     refreshProfile();
   };
@@ -73,9 +73,9 @@ function AccountPage() {
       <main className="mx-auto max-w-5xl space-y-12 px-6 py-12">
         <div>
           <h1 className="text-4xl">Hello, {profile.full_name}</h1>
-          <p className="mt-2 text-muted-foreground">
+          <div className="mt-2 text-muted-foreground">
             @{profile.username} · {profile.email} · <Badge variant="secondary">{profile.account_type}</Badge>
-          </p>
+          </div>
         </div>
 
         {announcements.data && announcements.data.length > 0 && (

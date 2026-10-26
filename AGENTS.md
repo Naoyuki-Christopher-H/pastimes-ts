@@ -9,4 +9,5 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Pastimes shop listings and cart math live in src/lib/shop.ts; the prototype keeps cart state in memory only, because no backend is connected yet.
+- Sign-up and login run through server functions in src/lib/auth.functions.ts (username login, admin-approval gate, identity document upload), because usernames must never be resolved to emails in the browser.
+- Approval is enforced in the database (is_approved / is_approved_vendor in RLS), not only in the UI, so pending accounts cannot trade even with a valid session.

@@ -40,7 +40,7 @@ export function Inbox({ me, showAll = false }: { me: { id: string; username: str
       item_name: m.item_name,
       body,
     });
-    if (error) return toast.error("Could not send the reply");
+    if (error) { toast.error("Could not send the reply"); return; }
     toast.success("Reply sent");
     setText("");
     setReplyTo(null);

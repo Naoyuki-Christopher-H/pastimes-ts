@@ -123,9 +123,9 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
       for (const issue of parsed.error.issues) next[String(issue.path[0])] ??= issue.message;
     }
     const file = f.get("document") as File | null;
-    if (!file || file.size === 0) next.document = "Upload an identity document";
-    else if (!DOCUMENT_TYPES.includes(file.type)) next.document = "Upload a PDF, JPG or PNG document";
-    else if (file.size > MAX_DOCUMENT_BYTES) next.document = "Document must be 5 MB or smaller";
+    if (!file || file.size === 0) next["document"] = "Upload an identity document";
+    else if (!DOCUMENT_TYPES.includes(file.type)) next["document"] = "Upload a PDF, JPG or PNG document";
+    else if (file.size > MAX_DOCUMENT_BYTES) next["document"] = "Document must be 5 MB or smaller";
     setErrors(next);
     if (Object.keys(next).length > 0 || !file) return;
 
@@ -181,9 +181,9 @@ function RegisterForm({ onDone }: { onDone: () => void }) {
       <div className="space-y-2">
         <Label htmlFor="reg-document">Identity document (PDF, JPG or PNG, up to 5 MB)</Label>
         <Input id="reg-document" name="document" type="file" accept=".pdf,.jpg,.jpeg,.png" />
-        {errors.document && <p className="text-sm text-destructive">{errors.document}</p>}
+        {errors["document"] && <p className="text-sm text-destructive">{errors["document"]}</p>}
       </div>
-      {errors.form && <p className="text-sm text-destructive" role="alert">{errors.form}</p>}
+      {errors["form"] && <p className="text-sm text-destructive" role="alert">{errors["form"]}</p>}
       <Button type="submit" className="w-full" disabled={busy}>{busy ? "Creating account..." : "Create account"}</Button>
     </form>
   );
