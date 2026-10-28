@@ -139,8 +139,8 @@ users.
 ### Installation
 
 ```bash
-git clone <repository-url>
-cd pastimes
+git clone https://github.com/Naoyuki-Christopher-H/pastimes-ts.git
+cd pastimes-ts
 bun install
 ```
 
