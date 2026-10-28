@@ -1,67 +1,83 @@
 # Pastimes
 
-Pastimes is a web application for buying and selling second-hand branded clothing in good condition. Customers browse and buy clothing, vendors offer clothing for sale, and an administrator approves accounts and manages the store.
+Pastimes is a web application for buying and selling second-hand
+branded clothing in good condition. Customers browse and buy clothing.
+Vendors offer clothing for sale. An administrator approves accounts
+and manages the store.
 
-This document describes the purpose of the application, its current status, how to install and run it, and how it is organised.
+Live website: https://pastimes-ts.lovable.app
+
+This document explains what the application does, its current status,
+how to install and run it, and how it is organized.
 
 ## Table of Contents
 
-1. [Disclaimer](#disclaimer)
+1. [Overview](#overview)
 2. [Project Status](#project-status)
-3. [Overview](#overview)
-4. [Features](#features)
-   1. [Available Now](#available-now)
-   2. [Planned](#planned)
-5. [User Roles](#user-roles)
-   1. [Customer](#customer)
-   2. [Vendor](#vendor)
-   3. [Administrator](#administrator)
-6. [Account Approval Process](#account-approval-process)
-7. [Technology Stack](#technology-stack)
-8. [Getting Started](#getting-started)
-   1. [Prerequisites](#prerequisites)
-   2. [Installation](#installation)
-   3. [Running the Application](#running-the-application)
-   4. [Available Commands](#available-commands)
-9. [Project Structure](#project-structure)
-10. [Data Model](#data-model)
-11. [Security](#security)
-12. [Default Administrator Account](#default-administrator-account)
-13. [Screenshots and Media](#screenshots-and-media)
-14. [Testing](#testing)
-15. [Known Limitations](#known-limitations)
-16. [Contributing](#contributing)
-17. [Support](#support)
-
-## Disclaimer
-
-UNDER NO CIRCUMSTANCES SHOULD IMAGES OR EMOJIS BE INCLUDED DIRECTLY IN THE README FILE. ALL VISUAL MEDIA, INCLUDING SCREENSHOTS AND IMAGES OF THE APPLICATION, MUST BE STORED IN A DEDICATED FOLDER WITHIN THE PROJECT DIRECTORY. THIS FOLDER SHOULD BE CLEARLY STRUCTURED AND NAMED ACCORDINGLY TO INDICATE THAT IT CONTAINS ALL VISUAL CONTENT RELATED TO THE APPLICATION (FOR EXAMPLE, A FOLDER NAMED IMAGES, SCREENSHOTS, OR MEDIA). I AM NOT LIABLE OR RESPONSIBLE FOR ANY MALFUNCTIONS, DEFECTS, OR ISSUES THAT MAY OCCUR AS A RESULT OF COPYING, MODIFYING, OR USING THIS SOFTWARE. IF YOU ENCOUNTER ANY PROBLEMS OR ERRORS, PLEASE DO NOT ATTEMPT TO FIX THEM SILENTLY OR OUTSIDE THE PROJECT. INSTEAD, KINDLY SUBMIT A PULL REQUEST OR OPEN AN ISSUE ON THE CORRESPONDING GITHUB REPOSITORY, SO THAT IT CAN BE ADDRESSED APPROPRIATELY BY THE MAINTAINERS OR CONTRIBUTORS.
-
-## Project Status
-
-Pastimes is a working prototype. Registration, admin approval, login, the storefront, cart, checkout, messaging, vendor listings, and the administrator page are all in place.
+3. [Features](#features)
+4. [User Roles](#user-roles)
+5. [Account Approval Process](#account-approval-process)
+6. [Technology Stack](#technology-stack)
+7. [Getting Started](#getting-started)
+8. [Project Structure](#project-structure)
+9. [Data Model](#data-model)
+10. [Security](#security)
+11. [Default Administrator Account](#default-administrator-account)
+12. [Screenshots and Media](#screenshots-and-media)
+13. [Testing](#testing)
+14. [Known Limitations](#known-limitations)
+15. [Contributing](#contributing)
+16. [Support](#support)
+17. [Disclaimer](#disclaimer)
 
 ## Overview
 
-Pastimes connects people who want to sell quality second-hand clothing with people who want to buy it. Every account is reviewed by an administrator before it can trade. This review protects buyers and sellers and keeps the quality of listings high.
+Pastimes connects people who want to sell quality second-hand clothing
+with people who want to buy it. Every account is reviewed by an
+administrator before it can trade. This review protects buyers and
+sellers and keeps the quality of listings high.
 
 The main goals of the application are:
 
 - Make it simple to browse and buy second-hand branded clothing.
 - Give vendors a clear way to offer clothing for sale.
-- Give the administrator full control over accounts, listings, orders, and communication.
+- Give the administrator full control over accounts, listings,
+  orders, and communication.
+
+The live website is available at https://pastimes-ts.lovable.app.
+
+## Project Status
+
+Pastimes is a working prototype. The following features are in place:
+registration, administrator approval, login, the storefront, the cart,
+checkout, messaging, vendor listings, and the administrator page.
 
 ## Features
 
 ### Available Now
 
-- **Registration.** Customers and vendors provide Full Name, Username, Email, Password, and Confirm Password, and upload an identity document (PDF, JPG, or PNG, up to 5 MB). Passwords must be at least 8 characters, and common or leaked passwords are refused.
-- **Login by username.** Accounts awaiting approval, or rejected accounts, see a clear message and are not signed in.
-- **Storefront.** Clothing listings are read from the database, showing brand, size, condition, price in South African rand, photo, and seller.
-- **Shopping cart and checkout.** Approved users add items to a saved cart, remove items, and buy. Orders are delivered to the address saved on the account.
-- **Messages.** Buyers message sellers about an item, and both sides can reply.
-- **My account.** Delivery details, order history, messages, announcements, and, for vendors, item submission, listings, and sales.
-- **Administrator page.** Review identity documents, approve or reject accounts with a note, add and approve listings, mark items as sold or remove them, update delivery status, read all messages, and post announcements.
+- **Registration.** Customers and vendors provide Full Name,
+  Username, Email, Password, and Confirm Password. They also upload
+  an identity document in PDF, JPG, or PNG format, up to 5 MB.
+  Passwords must be at least 8 characters long, and common or leaked
+  passwords are refused.
+- **Login by username.** Accounts awaiting approval, and rejected
+  accounts, see a clear message and are not signed in.
+- **Storefront.** Clothing listings are read from the database. Each
+  listing shows brand, size, condition, price in South African rand,
+  photo, and seller.
+- **Shopping cart and checkout.** Approved users add items to a saved
+  cart, remove items, and buy. Orders are delivered to the address
+  saved on the account.
+- **Messages.** Buyers message sellers about an item, and both sides
+  can reply.
+- **My account.** Delivery details, order history, messages,
+  announcements, and, for vendors, item submission, listings, and
+  sales.
+- **Administrator page.** Review identity documents, approve or
+  reject accounts with a note, add and approve listings, mark items
+  as sold or remove them, update delivery status, read all messages,
+  and post announcements.
 
 ### Planned
 
@@ -72,23 +88,34 @@ The main goals of the application are:
 
 ### Customer
 
-A customer browses clothing, adds items to a cart, buys items, enters delivery details, and sends messages to sellers. A customer can trade only after the administrator approves the account.
+A customer browses clothing, adds items to a cart, buys items,
+enters delivery details, and sends messages to sellers. A customer
+can trade only after the administrator approves the account.
 
 ### Vendor
 
-A vendor has all customer abilities and can also submit clothing for sale. Each listing is reviewed by the administrator before it becomes visible in the store.
+A vendor has all customer abilities and can also submit clothing
+for sale. Each listing is reviewed by the administrator before it
+becomes visible in the store.
 
 ### Administrator
 
-The administrator approves or rejects accounts, reviews identity documents, approves and removes listings, manages orders and deliveries, reads all messages, and sends announcements to all users.
+The administrator approves or rejects accounts, reviews identity
+documents, approves and removes listings, manages orders and
+deliveries, reads all messages, and sends announcements to all
+users.
 
 ## Account Approval Process
 
-1. A new user registers as a customer or a vendor and uploads an identity document.
+1. A new user registers as a customer or a vendor and uploads an
+   identity document.
 2. The account is created with the status **Pending**.
 3. The administrator reviews the details and the document.
-4. The administrator sets the status to **Approved** or **Rejected**.
-5. Only approved users can add to a cart, buy, send messages, or list clothing. The database enforces this rule, so it cannot be bypassed from the browser.
+4. The administrator sets the status to **Approved** or
+   **Rejected**.
+5. Only approved users can add to a cart, buy, send messages, or
+   list clothing. The database enforces this rule, so it cannot be
+   bypassed from the browser.
 
 ## Technology Stack
 
@@ -105,8 +132,9 @@ The administrator approves or rejects accounts, reviews identity documents, appr
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) version 1.1 or later.
-- A connected Lovable Cloud backend. The connection settings are provided in the `.env` file.
+- Bun version 1.1 or later.
+- A connected Lovable Cloud backend. The connection settings are
+  provided in the `.env` file.
 
 ### Installation
 
@@ -122,7 +150,8 @@ bun install
 bun run dev
 ```
 
-The application opens at `http://localhost:8080`.
+The application opens at `http://localhost:8080`. The live website
+is available at https://pastimes-ts.lovable.app.
 
 ### Available Commands
 
@@ -141,14 +170,14 @@ The application opens at `http://localhost:8080`.
 .
 |-- drizzle/migrations/      Database setup scripts
 |-- public/                  Static files served as they are
-|-- screenshots/             All screenshots and visual media for documentation
+|-- screenshots/             All screenshots and visual media
 |-- src/
 |   |-- assets/              Images used by the application
 |   |-- components/ui/       Reusable interface components
-|   |-- integrations/        Backend connection (generated, do not edit)
+|   |-- integrations/        Backend connection (generated)
 |   |-- lib/shop.ts          Sample listings and cart calculations
 |   |-- routes/              One file per page
-|   |-- styles.css           Colours, fonts, and design settings
+|   |-- styles.css           Colors, fonts, and design settings
 |   `-- test/                Automated tests
 |-- AGENTS.md                Technical decisions for contributors
 `-- README.md                This document
@@ -166,29 +195,40 @@ The application opens at `http://localhost:8080`.
 | `messages` | Messages between buyers, sellers, and the administrator. |
 | `announcements` | Notices from the administrator to all users. |
 
-When an order is placed, the database checks that the item is still available, marks it as sold, and removes it from every cart. This prevents the same item from being sold twice.
+When an order is placed, the database checks that the item is still
+available, marks it as sold, and removes it from every cart. This
+prevents the same item from being sold twice.
 
 ## Security
 
-- Row-level security is enabled on every table. Each user can read and change only their own data. Administrators have wider access.
-- Users cannot change their own approval status, account type, username, or email.
-- Administrator rights are stored in a separate roles table and checked by the database.
-- Identity documents are stored privately and are readable only by administrators.
+- Row-level security is enabled on every table. Each user can read
+  and change only their own data. Administrators have wider access.
+- Users cannot change their own approval status, account type,
+  username, or email.
+- Administrator rights are stored in a separate roles table and
+  checked by the database.
+- Identity documents are stored privately and are readable only by
+  administrators.
 
 ## Default Administrator Account
 
-A master administrator account is created when the database is first set up.
+A master administrator account is created when the database is first
+set up.
 
 | Field | Value |
 | --- | --- |
 | Username | `Admin` |
 | Password | `Ad!min@123` |
 
-**Important:** This password is public in this document and in the database setup script. Change it before the application is used with real customers.
+**Important:** This password is public in this document and in the
+database setup script. Change it before the application is used with
+real customers.
 
 ## Screenshots and Media
 
-All screenshots and visual media for this project are stored in the [`screenshots`](screenshots/) folder. Images must not be placed directly in this README.
+All screenshots and visual media for this project are stored in the
+`screenshots` folder. Images must not be placed directly in this
+README.
 
 ## Testing
 
@@ -198,7 +238,9 @@ Run the automated tests with:
 bun run test
 ```
 
-The tests confirm that the home page loads and that the registration rules work: an 8-character minimum password, matching confirmation, and no self-registration as an administrator.
+The tests confirm that the home page loads and that the registration
+rules work. The rules cover an 8-character minimum password, matching
+confirmation, and no self-registration as an administrator.
 
 ## Known Limitations
 
@@ -215,4 +257,31 @@ The tests confirm that the home page loads and that the registration rules work:
 
 ## Support
 
-If you find a problem, open an issue on the GitHub repository. Include the steps to reproduce it, what you expected to happen, and what happened instead.
+If you find a problem, open an issue on the GitHub repository.
+Include the steps to reproduce it, what you expected to happen, and
+what happened instead. The live website is available at
+https://pastimes-ts.lovable.app.
+
+## Disclaimer
+
+```
+UNDER NO CIRCUMSTANCES SHOULD IMAGES OR EMOJIS BE INCLUDED DIRECTLY IN
+THIS FILE. ALL VISUAL MEDIA, INCLUDING SCREENSHOTS AND IMAGES OF THE
+APPLICATION, MUST BE STORED IN A DEDICATED FOLDER WITHIN THE PROJECT
+DIRECTORY. THIS FOLDER SHOULD BE CLEARLY STRUCTURED AND NAMED
+ACCORDINGLY TO INDICATE THAT IT CONTAINS ALL VISUAL CONTENT RELATED TO
+THE APPLICATION, FOR EXAMPLE A FOLDER NAMED IMAGES, SCREENSHOTS, OR
+MEDIA. THE AUTHOR IS NOT LIABLE OR RESPONSIBLE FOR ANY MALFUNCTIONS,
+DEFECTS, OR ISSUES THAT MAY OCCUR AS A RESULT OF COPYING, MODIFYING, OR
+USING THIS SOFTWARE. IF ANY PROBLEMS OR ERRORS ARE ENCOUNTERED, PLEASE
+DO NOT ATTEMPT TO FIX THEM SILENTLY OR OUTSIDE THE PROJECT. INSTEAD,
+SUBMIT A PULL REQUEST OR OPEN AN ISSUE ON THE CORRESPONDING GITHUB
+REPOSITORY SO THAT IT CAN BE ADDRESSED APPROPRIATELY BY THE MAINTAINERS
+OR CONTRIBUTORS.
+```
+
+---
+
+END OF DOCUMENT
+
+---
